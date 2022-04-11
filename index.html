@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <title>
+        魔法门,magic window
+    </title>
+    <link rel="stylesheet" href="//unpkg.com/element-plus/dist/index.css" />
+    <script src="//unpkg.com/vue@next"></script>
+    <!-- <script src="//unpkg.com/vue-router@4"></script> -->
+    <script src="//unpkg.com/element-plus"></script>
+    <script src="//unpkg.com/vue-i18n"></script>
+    <script src="//unpkg.com/axios"></script>
+
+    <style>
+        #app {
+            font-family: Avenir, Helvetica, Arial, sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            text-align: center;
+            color: #2c3e50;
+        }
+
+        .infinite-list {
+            /* height: 300px; */
+            padding: 0;
+            margin: 0;
+            list-style: none;
+            display: flex;
+            flex-direction: row-reverse;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .infinite-list .infinite-list-item {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 50px;
+            background: var(--el-color-primary-light-9);
+            margin: 10px;
+            color: var(--el-color-primary);
+            width: 40%;
+        }
+
+        .infinite-list .infinite-list-item2 {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 50px;
+            background: #66beff;
+            margin: 10px;
+            color: #ffffff;
+            width: 40%;
+        }
+
+        .infinite-list .infinite-list-item+.list-item {
+            margin-top: 10px;
+        }
+
+        .textarea_box {
+            align-items: center;
+            justify-content: center;
+        }
+    </style>
+</head>
+
+<body>
+    <noscript>
+        <strong>We're sorry but we doesn't work properly without JavaScript enabled.
+            Please enable it to continue.</strong>
+    </noscript>
+    <div id="app">
+        <div style="position: fixed;right: 10px;top:10px; width: 200px;">
+            <el-button @click="showSettings = true">{{ $t('go.settings') }}</el-button>
+            <el-button @click="changeLanguage">{{ language }}</el-button>
+        </div>
+        <h2>{{ $t('title') }}</h2>
+        <h4>{{ $t('subTitle') }}</h4>
+        <!-- <router-view></router-view> -->
+        <div v-show="showSettings">
+            <el-divider></el-divider>
+            <h3>{{ $t('setting') }}:</h3>
+            <div style=" display: flex;">
+                <div style="width: 25%;">
+                    {{ $t('settings.newPageFormat') }}
+                    <div style="margin: 20px 0"></div>
+                    <el-input v-model="newPageFormat"></el-input>
+                    <div style="margin: 20px 0"></div>
+                    {{ $t('settings.keyFormart') }}
+                    <div style="margin: 20px 0"></div>
+                    <el-input v-model="keyFormart"></el-input>
+                </div>
+                <div style="width: 63%;" class="textarea_box">
+                    {{ $t('settings.split') }}
+                    <div style="margin: 20px 0"></div>
+                    <el-input v-model="ids" :autosize="{ minRows: 6, maxRows: 8 }" type="textarea" style="width:90%">
+                    </el-input>
+                </div>
+                <div style="width: 15%;">
+                    <el-button type="primary" @click="setInit">{{ $t('settings.save') }}</el-button>
+                    <div style="margin: 20px 0"></div>
+                    <el-button type="primary" @click="init">{{ $t('settings.init') }}</el-button>
+                    <el-button type="primary" @click="clear">{{ $t('settings.clear') }}</el-button>
+                </div>
+            </div>
+            <el-divider></el-divider>
+            <strong>
+                {{ $t('go.page') }}</strong>
+            {{ $t('go.start') }}
+            <el-input-number v-model="num" :min="1" :max="10"></el-input-number>
+            &nbsp;
+            {{ $t('go.to') }}
+            <el-input-number v-model="num2" :min="1" :max="10"></el-input-number>
+        </div>
+        <el-divider></el-divider>
+        <el-input v-model="magicKey" placeholder="enter your key" style="width: 40%; margin-right: 10px;"></el-input>
+        <el-button type="primary" @click="openWindows">{{ $t('go.open') }}</el-button>
+        <el-button @click="help">?</el-button>
+        <el-divider></el-divider>
+        <div style=" display: flex;">
+            <div style="width: 50%;">
+                <strong>{{ $t('go.histories') }}</strong>
+                <ul class="infinite-list">
+                    <li v-for="i in list2" :key="i" class="infinite-list-item2" @click="openWindow(i)">{{ i }}</li>
+                </ul>
+            </div>
+            <div style="width: 50%;">
+                <strong>{{ $t('go.ready') }}</strong>
+                <ul class="infinite-list">
+                    <li v-for="i in list" :key="i" class="infinite-list-item" @click="openWindow(i)">{{ i }}</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>
+
+<script>
+
+
+    const messages = {
+        // 英文
+        en: {
+            title: 'Magic window, please enter your key',
+            subTitle: 'one click to open multiple new page easily!',
+            setting: 'setting',
+            settings: {
+                keyFormart: 'key formart',
+                newPageFormat: 'newPageFormat,will be link with id',
+                split: 'id, split by comma',
+                save: 'save',
+                init: 'init',
+                clear: 'clear',
+            },
+            go: {
+                page: 'page:',
+                start: 'start',
+                to: 'to',
+                open: 'open page',
+                settings: 'settings',
+                histories: 'histories',
+                ready: 'ready'
+            }
+        },
+        // 中文
+        zh: {
+            title: '魔法门，输入密钥就能达到',
+            subTitle: '轻松设置，点一下按钮就能弹出多个页面',
+            setting: '设置',
+            settings: {
+                keyFormart: '解密格式',
+                newPageFormat: '前缀，通常是网址的前面部分',
+                split: '后缀，通常是id或者用户名，多条请使用逗号分割',
+                save: '保存并关闭设置',
+                init: '初始化',
+                clear: '清除',
+            },
+            go: {
+                page: '打开多少条:',
+                start: '从',
+                to: '到',
+                open: '打开页面',
+                settings: '设置',
+                histories: '历史',
+                ready: '清单'
+            }
+        }
+    };
+
+    /**
+     * 获取
+     * @returns {string}
+     */
+    function getLocal() {
+        // 如果缓存中存在，则直接返回
+        const myLocale = localStorage.getItem('my_locale')
+        if (myLocale) {
+            return myLocale
+        }
+        // 否则读取当前网页语言
+        const localName = navigator.language.indexOf('zh') !== -1 ? 'zh' : 'en'
+        // 设置缓存
+        localStorage.setItem('my_locale', localName)
+        return localName
+    }
+
+    // 创建i18n实例
+    const i18n = VueI18n.createI18n({
+        locale: getLocal(),
+        messages
+    });
+
+    const App = {
+        data() {
+            return {
+                keyFormart: "https://{0}.ipfs.dweb.link",
+                magicKey: '',
+                language: "English",
+                showSettings: false,
+                newPageFormat: "https://www.douyin.com/video/{0}",
+                num: 1,
+                num2: 1,
+                ids: "",
+                list2: [],
+                list: [],
+                initList: [""]
+            }
+        },
+        watch: {
+            "magicKey": function (to, from) {
+                window.location.href = window.location.href.split('#')[0] + "#" + to;
+                console.log(to);
+            }
+        },
+        created() {
+
+            var self = this;
+            setInterval(function () {
+                if (window.location.href.indexOf('#') > 0) {
+                    self.magicKey = window.location.href.split('#')[1];
+                }
+            }, 1000);
+
+            this.load();
+            if (this.list.length <= 0) {
+                this.list = this.ids.split(',');
+            }
+
+            this.initLanguage();
+        },
+        methods: {
+            initLanguage() {
+                var lang = localStorage.getItem('my_locale')
+                i18n.global.locale = lang
+                if (lang == 'en') {
+                    this.language = "中文"
+                } else {
+                    this.language = "English"
+                }
+            },
+            changeLanguage() {
+                console.log('i18n.global.locale', i18n.global.locale)
+                const lang = i18n.global.locale === 'en' ? 'zh' : 'en'
+                localStorage.setItem('my_locale', lang)
+                i18n.global.locale = lang
+                if (lang == 'en') {
+                    this.language = "中文"
+                } else {
+                    this.language = "English"
+                }
+            },
+            setInit() {
+                var arr = this.ids.split(',');
+                if (arr.length > 0) {
+                    this.initList = arr;
+                }
+                this.init();
+                this.showSettings = false;
+            },
+            help() {
+                if (i18n.global.locale === 'zh') {
+                    window.open('https://support.google.com/chromebook/answer/95472?hl=zh-Hans&co=GENIE.Platform%3DDesktop');
+                }
+                else {
+                    window.open('https://support.google.com/chrome/answer/95472?hl=en&co=GENIE.Platform%3DDesktop');
+                }
+            },
+            clear() {
+                this.list = [];
+                this.list2 = [];
+                this.save();
+            },
+            init() {
+                this.list2 = [];
+                var randomNum = function () {
+                    return 0.5 - Math.random();
+                }
+
+                this.list = this.initList;
+                this.list.sort(randomNum);
+                this.save();
+            },
+            save() {
+                localStorage.setItem("list2", JSON.stringify(this.list2));
+                localStorage.setItem("list", JSON.stringify(this.list));
+            },
+            load() {
+                var data = localStorage.getItem("list2");
+                this.list2 = JSON.parse(data);
+                data = localStorage.getItem("list");
+                this.list = JSON.parse(data);
+
+                if (this.list == undefined) {
+                    this.list = [];
+                }
+                if (this.list2 == undefined) {
+                    this.list2 = [];
+                }
+            },
+            openWindow(name) {
+                var self = this;
+                var href = self.newPageFormat.replace("{0}", name);
+                window.open(href, 'win' + name);
+                self.list2.push(name);
+
+
+                self.list = self.list.filter(function (v) {
+                    return self.list2.indexOf(v) == -1;
+                });
+
+                self.list2 = self.list2.filter(function (value, index, _self) {
+                    return _self.indexOf(value) === index;
+                });
+
+                window.self.focus();
+                self.save();
+            },
+            openWindows() {
+                var self = this;
+                if (self.magicKey != undefined && self.magicKey != null && self.magicKey != "") {
+                    var url = self.keyFormart.replace('{0}', self.magicKey);
+
+                    axios.get(url).then(res => {
+                        var data = res.data;
+                        self.newPageFormat = data.newPageFormat;
+                        self.ids = data.ids;
+                        self.initList = data.ids.split(",");
+                        self.setInit();
+                        self.magicKey = "";
+                        self.openWindows();
+
+                    }).catch(err => {
+                        console.log(err);
+                    });
+                }
+                else {
+                    if (this.num2 <= this.num) {
+                        self.num2 = this.num  ;
+                    }
+                    var windowList = self.list.slice(self.num - 1, self.num2);
+                    console.log(windowList);
+                    for (var i in windowList) {
+                        self.openWindow(windowList[i]);
+                    }
+                }
+            }
+        }
+    }
+
+    // const router = VueRouter.createRouter({
+    //     history: VueRouter.createWebHashHistory(),
+    //     routes: routes,
+    // })
+
+    const app = Vue.createApp(App)
+    // app.use(router)
+    app.use(ElementPlus)
+    app.use(i18n)
+    app.mount('#app')
+
+</script>
